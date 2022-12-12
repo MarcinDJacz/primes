@@ -16,8 +16,9 @@ class Sieve():
         except:
             print("No basic file. Generating...")
             self.Generate()
-        finally:
             print("Basic file loaded correctly.")
+        finally:            
+            self.primes.extend(Read('file1.txt')) 
             
         #read other files, if exists
         answ1 = input("Load the remaining number of files? Y/N").upper()
@@ -74,11 +75,11 @@ class Sieve():
         temp_tab[0]=1#0
         temp_tab[1]=1#1 -after, only odd numbers
         index = 2
-        self.primes = [2]
+        #self.primes = [2]
         while index < self.LEN:
             act_number = index * 2 - 1 #id 2 = 3, id 3 = 5, ...
             if temp_tab[index] == 0:
-                self.primes.append(act_number) 
+                #self.primes.append(act_number) 
                 file.write(str(act_number)+' ')
                 cross_out_index = index + act_number #2 + 3 = 5 -> [0,1,3,5,7,(9),11
                 temp_tab[cross_out_index : self.LEN : act_number] = 1

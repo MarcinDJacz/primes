@@ -1,136 +1,171 @@
 import math
 import datetime
+import time
 from bitarray import bitarray
 from multiprocessing import Pool
-from multiprocessing import Process
-'''
-autor: Marcin Djaczuk
-index: 2 3 4 5 ... 25
-liczby: 3 5 7 9 ... 49 : liczba = (2*index-1) - tylko nieparzyste
-tab = [0,0,0,0,0,0....] bitarray
-'''
-def Wczytaj(nazwa_pliku):
-    f = open(nazwa_pliku)
-    text = f.readline()
-    text2 = text.split()
-    for x in range(len(text2)):
-        text2[x] = int(text2[x])
-    return text2
+from multiprocessing import Process, Array
+from defs import is_prime, Read, More_Legible, Order_of_magnitude
 
-pierwsze = Wczytaj('rata0.txt')#wstępne liczby pierwsze do lekko ponad 100k
-pierwsze = pierwsze[1:]
-print(f'Wczytano wstępnie {len(pierwsze)} liczb, ostatnia to: {pierwsze[len(pierwsze)-1]}')
+class Sieve():
+    def __init__(self,part=1):
+        self.primes = []
+        self.LEN = 100_000_000        
+        #does basic file1.txt exist, if doesn't - create
+        try:
+            self.primes.extend(Read('file1.txt'))            
+        except:
+            print("No basic file. Generating...")
+            self.Generate()
+        finally:
+            print("Basic file loaded correctly.")
+            
+        #read other files, if exists
+        answ1 = input("Load the remaining number of files? Y/N").upper()
+        if answ1 == 'Y':
+            try:
+                i = 2
+                while i < 100:                
+                    file_name = 'file' + str(i) + '.txt'
+                    self.primes.extend(Read(file_name))                
+                    i += 1
+            except:
+                pass
+            finally:
+                print(f"{i-1} files loaded.")
+                print("No more files to read")
+                
+                if i < 10:
+                    print("At least 10 files recommended. Approximately 1Gb space needed.")
+                    answ2 = input('Do you want to create it now? Y/N')
+                    if answ2.upper() == 'Y':
+                        self.Make_files_multip(i,11)
+                        answ3 = input(f"Do you want to add this files to variable Primes now? Y/N")
+                        if answ3.upper() == 'Y':
+                            self.Add_to_primes(i,11)
+        self.Max_range()
 
-#globalne; LEN, pierwsze
-def ObliczProces(rata):
-    czas1 = datetime.datetime.now()# czas wykonania TEST
-    ile_pierwszych = 0
-    #pierwszeTYM = []
-    temp_tab = LEN * bitarray('0') #Tworzenie bitarray'a do wykreslanki
-    if rata == 1:
-        ostatni_element = int((pierwsze[-1]+1)/2) #104729 - ostatnia pierwsza we wstepnie wczytanym pliku
-    elif rata > 1:
-        ostatni_element = (rata-1) *(LEN)
-    zakres_p = math.floor(math.sqrt((ostatni_element+LEN)*2) + 1)#pierwiastek z granicy zakresu liczb do wykreslania
+    def If_is_prime(self, number = 0, arr = []):
+        if number != 0:
+            print(is_prime(number))
+            return 0
+        elif len(arr) > 0:
+            for num in arr:
+                if is_prime(num) == False:
+                    print(num)
+            return 0
+        
+    def Repeat(self,x_times,from_x,to_y):
+        difference = to_y - from_x
+        for x in range(x_times):
+            self.Make_files_multip(from_x, to_y)            
+            time.sleep(1)
+            from_x = to_y
+            to_y += difference
+            
+    def Max_range(self):
+        act_range = self.primes[-1]**2
+        print(f'Maximum range: {More_Legible(act_range)} -> {Order_of_magnitude(act_range)} ')
+        
+    def Generate(self):
+        file = open('file1.txt', 'w')
+        time1 = datetime.datetime.now()
+        
+        temp_tab = self.LEN * bitarray('0')
+        temp_tab[0]=1#0
+        temp_tab[1]=1#1 -after, only odd numbers
+        index = 2
+        self.primes = [2]
+        while index < self.LEN:
+            act_number = index * 2 - 1 #id 2 = 3, id 3 = 5, ...
+            if temp_tab[index] == 0:
+                self.primes.append(act_number) 
+                file.write(str(act_number)+' ')
+                cross_out_index = index + act_number #2 + 3 = 5 -> [0,1,3,5,7,(9),11
+                temp_tab[cross_out_index : self.LEN : act_number] = 1
+                '''#the same, but x2 faster than:
+                while cross_out_index < self.LEN:
+                    temp_tab[cross_out_index] = 1
+                    cross_out_index += act_number'''
+            index += 1
 
-    licznik_pierwszych = 0
-    wykreslana_liczba = pierwsze[licznik_pierwszych]#wczytaj pierwsza l.p. do wykreslenia
-    
-    while wykreslana_liczba < zakres_p:
-        #ile brakuje - do obliczenia, od której liczby i którego indeksu zacznie się dalszą wykreślankę
-        brakuje = (ostatni_element - int((wykreslana_liczba-1)/2)) % wykreslana_liczba
-        if brakuje == 0:
-            temp_tab[0]=1
-        index = wykreslana_liczba - brakuje
-        temp_tab[index] = 1
-       
-        while index < LEN:
+        file.close()
+        time2 = datetime.datetime.now()
+        print("Basic file generated in: ", (time2 - time1))
+    def Add_to_primes(self,  from_x, to_y):
+        for x in range(from_x, to_y):            
+                file_name = 'file' + str(x) + '.txt'
+                self.primes.extend(Read(file_name))
+                x += 1
+        self.Max_range()
+    def Make_files_multip(self, from_x, to_y):
+        x_times = to_y - from_x 
+
+        p = Pool(10)
+        time1 = datetime.datetime.now()
+        p.map(self.Create_file, range(from_x , to_y))
+        p.close()
+        time2 = datetime.datetime.now()
+        print(f"{(x_times)} files created in: ---{(time2-time1)}---")
+        
+    def Check_file(self, nr):
+        file = 'file' + str(nr) + '.txt'
+        temp = Read(file)
+        for x in range(len(temp)):
+            is_prime(temp[x])
+        temp = []
+                
+    def Create_file(self,file_number):
+        time1 = datetime.datetime.now()
+        number_of_primes = 0
+        file_name = 'file' + str(file_number) + '.txt'
+        file = open(file_name, 'w')
+        last_element = (file_number-1) *(self.LEN)   
+        square_range = math.floor(math.sqrt((last_element*2) + (self.LEN*2)) + 1)
+ 
+        if square_range <= self.LEN:
+            temp_tab = (self.LEN) * bitarray('0')# min size of bitarrey = LEN
+        else:
+            temp_tab = (square_range) * bitarray('0') 
+
+        primes_counter = 0
+        find_tag_number = self.primes[primes_counter]
+        
+        #FIND AND TAG
+        while find_tag_number <= square_range:
+            #missing elements on beginning
+            missing = (last_element - ((find_tag_number-1)//2)) % find_tag_number
+            if missing == 0:
+                index = 0
+                temp_tab[0]=1
+            index = find_tag_number - missing
             temp_tab[index] = 1
-            index += wykreslana_liczba         
+            
+            temp_tab[index : self.LEN : find_tag_number] = 1
+            ''''' #the same, but x2 faster than:
+            while index < self.LEN:
+                temp_tab[index] = 1
+                index += find_tag_number '''        
+            primes_counter += 1
+            find_tag_number = self.primes[primes_counter]
+            
+        #FINDING PRIMES FROM ASHES
+        number = 0
         
-        licznik_pierwszych += 1
-        wykreslana_liczba = pierwsze[licznik_pierwszych]
-        
-    nazwa_pliku = 'rata' + str(rata) + '.txt'###
-    file = open(nazwa_pliku, 'w')###
-    #stara_ilosc_pierwszych = len(pierwsze)
-    for x in range(len(temp_tab)):
-        if temp_tab[x] == 0:
-            ile_pierwszych += 1
-            liczba = ostatni_element*2+(x*2)+1
-            if rata == 1 :#prymitywne rozwiazanie
-                if liczba <= (LEN*2):
-                    #pierwszeTYM.append(liczba)
-                    file.write(str(liczba)+' ')
-            else:
-                #pierwszeTYM.append(liczba)
-                file.write(str(liczba)+' ')
-    file.close()
-    
-    #nowa_ilosc_pierwszych = len(pierwsze)
-    czas2 = datetime.datetime.now()#czas wykonania TEST
-    print(f'Test: wielkość zmiennej /pierwsze/: {len(pierwsze)}')
-    print(f"Rata nr {rata} w czasie{(czas2-czas1)}, dodano {ile_pierwszych} liczb pierwszych")
-    #print(f"Pierwsza w bloku: {pierwszeTYM[0]} , ostatnia w bloku: {pierwszeTYM[-1]}")
-    print('Ilosc pierwszych w tablicy: ', len(pierwsze))
-    print('------------------------------------------------------')
-    return 1#pierwszeTYM    
+        for x in range(self.LEN):
+            if temp_tab[x] == 0:                
+                number_of_primes += 1
+                number = last_element*2+(x*2)+1
+                file.write(str(number)+' ')
 
-LEN = 100_000_000 #wielkość tablicy w jednym procesie
-ILE_RAT = 10 #ile rat jednocześnie w multi ma liczyć
-ostatni_element = int((pierwsze[-1]+1)/2) #104729
-'''
-############################################ test porownawczy - single
-czas1 = datetime.datetime.now()#ogólny czas 
-for i in range(1,ILE_RAT):
-    ObliczProces(i)
-czas2 = datetime.datetime.now()#ogólny czas
-print(f'Single-process: Obliczenia wykonano w czasie{czas2 - czas1}. Jeden blok(10procesow)')
-#print(f'Wielkosc tablicy: {len(pierwszeTEST)}')
-# 10 raty PC: Single-process: Obliczenia wykonano w czasie0:02:25.613804. Jeden blok(10procesow) Ryzen 5500 6/12
-############################################ koniec testu porownawczego - single
-'''
+        file.close()
+        time2 = datetime.datetime.now()
+        print(f'File number: {file_number} created in {(time2-time1)}')
+        print(f'{number_of_primes} primes found.')
+        print(f'Last primes in block: {number}')
+
+        
 if __name__ == "__main__":
-    #zakres obliczen
-    od_ilu = 1
-    do_ilu = ILE_RAT+1
-    p = Pool()
-    ile_razy = 10
-    plik_nr = 0
-    for x in range(ile_razy):       
-        czas1 = datetime.datetime.now()#ogólny czas
-        p.map(ObliczProces, range(od_ilu , do_ilu))#tu cała magia       
-        czas2 = datetime.datetime.now()#ogólny czas
 
-        od_ilu = do_ilu
-        do_ilu = do_ilu + ILE_RAT        
-        print(f'Blok nr {x+1} - Multi-process: Obliczenia wykonano w czasie{czas2 - czas1}')
-        
-        #dynamiczne zwiekszanie z wyprzedzeniem listy liczb pierwszych do wykreslenia - działa
-        '''
-        ostatni_element = (ILE_RAT+1) *(LEN) * (x+3)
-        zakres_p = math.floor(math.sqrt((ostatni_element+LEN)*2) + 1)
-        if zakres_p > pierwsze[-1]:
-            plik_nr += 1
-            Nazwa_pliku = 'rata' + str(plik_nr) + '.txt'
-            pierwsze.extend(Wczytaj(Nazwa_pliku))
-            print('Rozszerzono liste liczb pierwszych do kolejnych obliczeń')
-        '''
-        #prostsze rozwiazanie, do testow - z kazdym blokiem zwieksz liczby pierwsze
-        plik_nr += 1
-        Nazwa_pliku = 'rata' + str(plik_nr) + '.txt'
-        pierwsze.extend(Wczytaj(Nazwa_pliku))
-        print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-        
-    # 10 raty PC: Multi-process: Obliczenia wykonano w czasie0:00:35.375089
-
-
-'''
-przy 53-54 racie w multi (blok nr 5) wyrzuca error:
-
-    wykreslana_liczba = pierwsze[licznik_pierwszych]
-    IndexError: list index out of range
-w pliku 55 wywoluje blad
-jest to zakres, przy ktorym pierwiastek z gornego zakresu jest WIEKSZY niz ostatnia liczba pierwsza.
-liczby pierwsze sa rozszerzane w linii nr  122 w glownej petli, jednak p.map jakby tego nie czytał.
-'''
+    MySieve = Sieve()
+    print(f"{len(MySieve.primes)} primes loaded.")
+    print("Last prime number: " , MySieve.primes[-1])

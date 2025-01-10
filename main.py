@@ -7,7 +7,11 @@ from multiprocessing import Process, Array
 from defs import is_prime, Read, More_Legible, Order_of_magnitude
 
 class Sieve():
-    def __init__(self,part=1):
+    """
+    One file created in aproximatly 16s and size of this file is arround 100Mb
+    It can be faster.
+    """
+    def __init__(self,part = 1):
         self.primes = []
         self.LEN = 100_000_000        
         #does basic file1.txt exist, if doesn't - create

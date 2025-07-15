@@ -1,11 +1,25 @@
-import math
 import datetime
+import inspect
+import itertools
+import math
+import random
+import threading
 import time
+from multiprocessing import Array, Pool, Process
+from multiprocessing.pool import ThreadPool
+
 from bitarray import bitarray
-from multiprocessing import Pool
-from multiprocessing import Process, Array
-from defs import is_prime, More_Legible, Order_of_magnitude, Read_Bits, BitFileToArrayOfPrimes, \
-    How_much_bin_files_in_directory, Zip_file
+
+from primes.utils import (
+    bit_file_to_array_of_primes,
+    how_much_bin_files_in_directory,
+    is_prime,
+    more_legible,
+    order_of_magnitude,
+    read_bits
+)
+
+
 
 def timed(func):
     def wrapper(*args, **kwargs):
@@ -19,7 +33,7 @@ def timed(func):
 
 
 class Sieve():
-    global timed
+    # global timed
     """
     1 file created in aproximatly 0.17s(from 16s earlier) with size 11,9 MB (110Mb earlier)
     """
@@ -31,21 +45,22 @@ class Sieve():
         self.files_number = 0
         # does basic bits_file1.bin exist, if doesn't - create
         try:
-            self.primes.extend(BitFileToArrayOfPrimes(1, self.LEN))
+            self.primes.extend(bit_file_to_array_of_primes(1, self.LEN))
             self.files_number += 1
         except:
             print("No basic file. Generating...")
-            self.Generate()
+            self.generate_initial_file()
             print("Basic file loaded correctly.")
-            self.primes.extend(BitFileToArrayOfPrimes(1, self.LEN))
+            self.primes.extend(bit_file_to_array_of_primes(1, self.LEN))
             self.files_number += 1
         finally:
             print(f"File nr1 loaded and added to primes. Last prime is: {self.primes[-1]}")
-        self.Max_range()
+        #self.primes = self.primes[:10000]
+        self.max_range()
         print(f"{len(self.primes)} primes loaded.")
         print("Last prime number: ", self.primes[-1])
-        files, files_in_order = How_much_bin_files_in_directory()
-
+        #files, files_in_order = how_much_bin_files_in_directory()
+        '''
         self.sqrts = []
         for x in range(100):  # potencial files
             self.sqrts.append(pow(int((x * self.LEN * 2) + self.LEN * 2), 1 / 2))
@@ -55,12 +70,12 @@ class Sieve():
                 break
             if prime > self.sqrts[x]:
                 self.limes.append(self.primes.index(prime))
-                x += 1
-
+                    x += 1
+        '''
     # 1000000000000000199999999 #kwadrylion
 
     #@timed
-    def Check_is_prime_better(self, number):
+    def check_prime_optimiz(self, number):
         if self.primes[-1] ** 2 > number:
             if number == 2 or number == 3:
                 return True
@@ -79,7 +94,7 @@ class Sieve():
         else:
             print('More primes in data needed.')
 
-    def Check_is_prime_very_long_numbers(self, number):
+    def check_prime_large_numbers(self, number):#do poprawy
         # initial conditions
         if number == 2 or number == 3:
             return True
@@ -91,7 +106,7 @@ class Sieve():
         square = int(number ** (1 / 2))
         for file in range(1, aim_file_number):
             self.primes.clear()
-            self.primes.extend(BitFileToArrayOfPrimes(file, self.LEN))
+            self.primes.extend(bit_file_to_array_of_primes(file, self.LEN))
             print(f'File nr {file} loaded')
 
             for prime in self.primes:
@@ -99,7 +114,7 @@ class Sieve():
                     return False
         # last file
         self.primes.clear()
-        self.primes.extend(BitFileToArrayOfPrimes(aim_file_number, self.LEN))
+        self.primes.extend(bit_file_to_array_of_primes(aim_file_number, self.LEN))
         x = 1
         actual_number = self.primes[x]
         while actual_number < square:
@@ -118,27 +133,32 @@ class Sieve():
 
     @timed
     def random_test_one_file(self, nr, how_many=100):
-        import random
-        a = BitFileToArrayOfPrimes(nr)
+
+        print(f"Testing file nr {nr}")
+
+        a = bit_file_to_array_of_primes(nr)
+        length = len(a) - 1
         for x in range(how_many):
-            random_index = random.randint(1, len(a) - 1)
-            if self.Check_is_prime_better(a[random_index]) == False:
+            random_index = random.randint(1, length)
+            if self.check_prime_optimiz(a[random_index]) == False:
                 print(f'Error in file nr {nr}. Found: {a[random_index]} in file.')
                 return a[random_index]
                 break
         for x in range(1, 4):
-            if self.Check_is_prime_better(a[len(a) - x]) == False or self.Check_is_prime_better(a[x]) == False:
+            if self.check_prime_optimiz(a[length - x]) == False or self.check_prime_optimiz(a[x]) == False:
                 print(f'Error in file nr {nr}. Found: {a[random_index]} in file.')
-                return a[len(a) - x]
+                return a[length + 1 - x]
                 break
-        substring = 'File nr ' + str(nr) + ' OK. Last prime number: ' + More_Legible(a[-1])
+        substring = 'File nr ' + str(nr) + ' OK. Last prime number: ' + more_legible(a[-1])
         return substring
 
-    def Max_range(self):
+    def max_range(self):
         act_range = self.primes[-1] ** 2
-        print(f'Maximum range: {More_Legible(act_range)} -> {Order_of_magnitude(act_range)} ')
+        max_file = act_range // 200_000_000
+        print(f'Maximum range: {more_legible(act_range)} -> {order_of_magnitude(act_range)} ')
+        print(f'__ Maximum file number possible to create is: {max_file}')
     @timed
-    def Find_the_biggest_in_range(self, x_start):  # DO CALKOWITEJ POPRAWY
+    def find_max_in_range(self, x_start):  # DO CALKOWITEJ POPRAWY
         file_number = 1
         if len(self.primes) > 22157872:
             print(f'Cuttig primes to range in file1')
@@ -188,34 +208,34 @@ class Sieve():
             if temp_tab[x] == 0:
                 number = last_element * 2 + (x * 2) + 1
                 print(
-                    f'The biggest prime in this range is {More_Legible(number)} ({Order_of_magnitude(number)})  found in {(time2 - time1)}')
+                    f'The biggest prime in this range is {more_legible(number)} ({order_of_magnitude(number)})  found in {(time2 - time1)}')
                 print('Checking, if is prime number')
 
                 file = open('The_biggests.txt', 'a')
                 file.write(
-                    "The biggest prime in range: " + str(More_Legible((x_start - 1) * self.LEN * 2)) + " to " + str(
-                        More_Legible(x_start * self.LEN * 2)) + " is " + str(More_Legible(number)) + " -> " + str(
-                        Order_of_magnitude(number)) + ". Found in " + str(time2 - time1) + '\n')
+                    "The biggest prime in range: " + str(more_legible((x_start - 1) * self.LEN * 2)) + " to " + str(
+                        more_legible(x_start * self.LEN * 2)) + " is " + str(more_legible(number)) + " -> " + str(
+                        order_of_magnitude(number)) + ". Found in " + str(time2 - time1) + '\n')
                 file.close()
                 return number
 
-    def Max_range_from(self, file_number):
+    def get_max_range_from(self, file_number):
         try:
-            temp = BitFileToArrayOfPrimes(str(file_number))
+            temp = bit_file_to_array_of_primes(str(file_number))
         except:
             print('This file doesnt exist. Creating...')
-            self.Create_file(file_number)
-            temp = BitFileToArrayOfPrimes(str(file_number))
+            self.create_file(file_number)
+            temp = bit_file_to_array_of_primes(str(file_number))
         finally:
             pass
 
         max_file = int(temp[-1] ** 2 / self.LEN / 2)
-        max_file_text = 'Max file number: ' + str(More_Legible(max_file))
+        max_file_text = 'Max file number: ' + str(more_legible(max_file))
         size = "Size of all files: " + str(int(12_200 * max_file / 1024 / 1024)) + " GB"
-        return temp[-1], More_Legible(temp[-1] ** 2), Order_of_magnitude(temp[-1] ** 2), max_file_text, size
+        return temp[-1], more_legible(temp[-1] ** 2), order_of_magnitude(temp[-1] ** 2), max_file_text, size
 
     @timed
-    def Generate(self):
+    def generate_initial_file(self):
 
         temp_tab = (self.LEN) * bitarray('0')
         temp_tab[:1] = 1
@@ -235,39 +255,38 @@ class Sieve():
         file_name = self.file_name + '1.bin'
         with open(file_name, 'wb') as fh:
             temp_tab.tofile(fh)
-        self.random_test_one_file_basic(1)
+        #self.random_test_one_file(1)
 
-    def Add_to_primes(self, from_x, to_y):
+    def add_to_primes_data(self, from_x, to_y):
         for x in range(from_x, to_y):
-            self.primes.extend(BitFileToArrayOfPrimes(x, self.LEN))
+            self.primes.extend(bit_file_to_array_of_primes(x, self.LEN))
             x += 1
             print(f'File nr {x - 1} loaded')
-        self.Max_range()
+        self.max_range()
 
     @timed
-    def Make_files_multip_single_mode(self, from_x, to_y):
+    def generate_files_single_thread(self, from_x, to_y):
         x_times = to_y - from_x
         for x in range(from_x, to_y):
-            (MySieve.Create_file(x))
+            (MySieve.create_file(x))
 
 
     @timed
-    def Make_files_multip_thread(self, from_x, to_y):  # doesn't work yet
-        from multiprocessing.pool import ThreadPool
+    def generate_files_threaded(self, from_x, to_y):  # doesn't work yet
         files = [n for n in range(from_x, to_y)]
         with ThreadPool(12) as pool:
-            wyn = pool.map(self.Create_file, (files))
+            wyn = pool.map(self.create_file, (files))
         return wyn
 
     @timed
-    def Make_files_multiprocessing(self, from_x, to_y): # doesn't work yet
+    def generate_files_multiprocessing(self, from_x, to_y): # doesn't work yet
         x_times = to_y - from_x
-        from itertools import product
-        pliki = [n for n in range(from_x, to_y)]
-        with Pool(12) as pool:
-            wyn = pool.starmap(self.Create_file, product(pliki))
 
-    def Create_file(self, file_number, info=False):
+        pliki = [n for n in range(from_x, to_y)]
+        with Pool(10) as pool:
+            wyn = pool.starmap(self.create_file, product(pliki))
+
+    def create_file(self, file_number, info=False):
         # for tests:
         logs = []
         time1 = datetime.datetime.now()
@@ -294,7 +313,7 @@ class Sieve():
                 temp_tab[0] = 1
             else:
                 index = find_tag_number - missing
-            temp_tab[index] = 1
+            temp_tab[index] = 1#?
             temp_tab[index: self.LEN: find_tag_number] = 1  # cala wykreslanka
             primes_counter += 1
             find_tag_number = self.primes[primes_counter]  # REFERENCE TO self.primes - multi !
@@ -303,18 +322,32 @@ class Sieve():
         temp_tab = temp_tab[:self.LEN]
         file_name = self.file_name + str(file_number) + '.bin'
 
-        with open(file_name, 'wb') as fh:  #
-            temp_tab.tofile(fh)  #
-
+        ### !!! niech funkcja zwraca tablice, a beda one zapisywane w osobnej metodzie / osobnym wątku
+        self.save_file(file_name, temp_tab)
+        '''t = threading.Thread(target = self.save_file, args=(file_name, temp_tab))
+        t.start()
+        t.join()
+        '''
         time2 = datetime.datetime.now()
         if info:
             print(f'File number: {file_number} created in {(time2 - time1)}')
         self.files_number += 1
         return logs
 
+    def save_file(self, file_name: str, temp_tab) -> None:
+        with open(file_name, 'wb') as fh:
+            temp_tab.tofile(fh)
+
+
+
 if __name__ == "__main__":
+    # met = [name for name, func in inspect.getmembers(Sieve, predicate=inspect.isfunction)]
+    # print(met)
+
     MySieve = Sieve()
-    MySieve.Make_files_multip_single_mode(2, 12)
-    for x in range(1,6):
-        print(MySieve.random_test_one_file(x))
+    #MySieve.random_test_one_file(1)
+    MySieve.generate_files_single_thread(2, 6)
+    #MySieve.add_to_primes_data(2, 3)
+    #print(MySieve.primes[-1])
+    #MySieve.generate_files_multiprocessing(2,12)
 

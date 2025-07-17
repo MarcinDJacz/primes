@@ -10,6 +10,16 @@ from multiprocessing.pool import ThreadPool
 
 from bitarray import bitarray
 
+'''
+Przerob to na 3 osobne klasy:
+sieve(koordynator)
+SieveCalculation (obliczenia)
+SieveFileMenager ( odczyt i zapis plikow, generowanie ( bez obliczen))
+metody testujace przenies do testow
+'''
+
+
+
 from primes.utils import (
     bit_file_to_array_of_primes,
     how_much_bin_files_in_directory,
@@ -74,90 +84,14 @@ class Sieve():
         '''
     # 1000000000000000199999999 #kwadrylion
 
-    #@timed
-    def check_prime_optimiz(self, number):
-        if self.primes[-1] ** 2 > number:
-            if number == 2 or number == 3:
-                return True
-            elif number % 2 == 0:
-                return False
-            else:
-                square = int(number ** (1 / 2))
-                x = 1
-                actual_number = self.primes[x]
-                while actual_number < square:
-                    if number % self.primes[x] == 0:
-                        return False
-                    x += 1
-                    actual_number = self.primes[x]
-                return True
-        else:
-            print('More primes in data needed.')
-
-    def check_prime_large_numbers(self, number):#do poprawy
-        # initial conditions
-        if number == 2 or number == 3:
-            return True
-        elif number % 2 == 0:
-            return False
-
-        aim_file_number = math.ceil((number ** (1 / 2)) / (self.LEN * 2))
-        print(f'{aim_file_number} of files needed')
-        square = int(number ** (1 / 2))
-        for file in range(1, aim_file_number):
-            self.primes.clear()
-            self.primes.extend(bit_file_to_array_of_primes(file, self.LEN))
-            print(f'File nr {file} loaded')
-
-            for prime in self.primes:
-                if number % prime == 0:
-                    return False
-        # last file
-        self.primes.clear()
-        self.primes.extend(bit_file_to_array_of_primes(aim_file_number, self.LEN))
-        x = 1
-        actual_number = self.primes[x]
-        while actual_number < square:
-            if number % actual_number == 0:
-                return False
-            x += 1
-            actual_number = self.primes[x]
-        return True
-
-    def random_test_files(self, froom, too): #doesnt work yet
-        p = Pool(10)
-        result = p.map(self.random_test_one_file, range(froom, too))
-        p.close()
-        for x in result:
-            print(x)
-
-    @timed
-    def random_test_one_file(self, nr, how_many=100):
-
-        print(f"Testing file nr {nr}")
-
-        a = bit_file_to_array_of_primes(nr)
-        length = len(a) - 1
-        for x in range(how_many):
-            random_index = random.randint(1, length)
-            if self.check_prime_optimiz(a[random_index]) == False:
-                print(f'Error in file nr {nr}. Found: {a[random_index]} in file.')
-                return a[random_index]
-                break
-        for x in range(1, 4):
-            if self.check_prime_optimiz(a[length - x]) == False or self.check_prime_optimiz(a[x]) == False:
-                print(f'Error in file nr {nr}. Found: {a[random_index]} in file.')
-                return a[length + 1 - x]
-                break
-        substring = 'File nr ' + str(nr) + ' OK. Last prime number: ' + more_legible(a[-1])
-        return substring
-
-    def max_range(self):
+    # przeniesc do UTILS
+    def max_range(self): #jaki maksymalny nr pliku mozna wygenerowac z liczb aktualnie wczytanych
         act_range = self.primes[-1] ** 2
-        max_file = act_range // 200_000_000
+        max_file = act_range // 200_000_000 - 1
         print(f'Maximum range: {more_legible(act_range)} -> {order_of_magnitude(act_range)} ')
         print(f'__ Maximum file number possible to create is: {max_file}')
     @timed
+
     def find_max_in_range(self, x_start):  # DO CALKOWITEJ POPRAWY
         file_number = 1
         if len(self.primes) > 22157872:
@@ -219,7 +153,8 @@ class Sieve():
                 file.close()
                 return number
 
-    def get_max_range_from(self, file_number):
+    #przeniesc do UTILS
+    def get_max_range_from(self, file_number): #jaki maksymalny nr pliku mozna wygenerowac z liczb DO podanego pliku wlacznie
         try:
             temp = bit_file_to_array_of_primes(str(file_number))
         except:
@@ -235,7 +170,7 @@ class Sieve():
         return temp[-1], more_legible(temp[-1] ** 2), order_of_magnitude(temp[-1] ** 2), max_file_text, size
 
     @timed
-    def generate_initial_file(self):
+    def generate_initial_file(self): #calculation
 
         temp_tab = (self.LEN) * bitarray('0')
         temp_tab[:1] = 1
@@ -257,7 +192,7 @@ class Sieve():
             temp_tab.tofile(fh)
         #self.random_test_one_file(1)
 
-    def add_to_primes_data(self, from_x, to_y):
+    def add_to_primes_data(self, from_x, to_y): #menager
         for x in range(from_x, to_y):
             self.primes.extend(bit_file_to_array_of_primes(x, self.LEN))
             x += 1
@@ -265,28 +200,28 @@ class Sieve():
         self.max_range()
 
     @timed
-    def generate_files_single_thread(self, from_x, to_y):
+    def generate_files_single_thread(self, from_x, to_y):#menager i rozdzial
         x_times = to_y - from_x
         for x in range(from_x, to_y):
             (MySieve.create_file(x))
 
 
     @timed
-    def generate_files_threaded(self, from_x, to_y):  # doesn't work yet
+    def generate_files_threaded(self, from_x, to_y):  # doesn't work yet - menager
         files = [n for n in range(from_x, to_y)]
         with ThreadPool(12) as pool:
             wyn = pool.map(self.create_file, (files))
         return wyn
 
     @timed
-    def generate_files_multiprocessing(self, from_x, to_y): # doesn't work yet
+    def generate_files_multiprocessing(self, from_x, to_y): # doesn't work yet menager
         x_times = to_y - from_x
 
         pliki = [n for n in range(from_x, to_y)]
         with Pool(10) as pool:
             wyn = pool.starmap(self.create_file, product(pliki))
 
-    def create_file(self, file_number, info=False):
+    def create_file(self, file_number, info=False): #file menager rozdzial obliczen
         # for tests:
         logs = []
         time1 = datetime.datetime.now()
@@ -334,19 +269,39 @@ class Sieve():
         self.files_number += 1
         return logs
 
-    def save_file(self, file_name: str, temp_tab) -> None:
+    def save_file(self, file_name: str, temp_tab) -> None: #filemenager
         with open(file_name, 'wb') as fh:
             temp_tab.tofile(fh)
 
+    def check_prime_optimiz(self, number):
+        if self.primes[-1] ** 2 > number:
+            if number == 2 or number == 3:
+                return True
+            elif number % 2 == 0:
+                return False
+            else:
+                square = int(number ** (1 / 2))
+                x = 1
+                actual_number = self.primes[x]
+                while actual_number < square:
+                    if number % self.primes[x] == 0:
+                        return False
+                    x += 1
+                    actual_number = self.primes[x]
+                return True
+        else:
+            print('More primes in data needed.')
 
 
 if __name__ == "__main__":
     # met = [name for name, func in inspect.getmembers(Sieve, predicate=inspect.isfunction)]
     # print(met)
+    # a=input()
 
     MySieve = Sieve()
     #MySieve.random_test_one_file(1)
-    MySieve.generate_files_single_thread(2, 6)
+    #MySieve.create_file(1000)
+    # MySieve.generate_files_single_thread(2, 6)
     #MySieve.add_to_primes_data(2, 3)
     #print(MySieve.primes[-1])
     #MySieve.generate_files_multiprocessing(2,12)

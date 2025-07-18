@@ -85,24 +85,15 @@ class SieveCalculation:
         return temp_tab
 
     def create_file(self, file_number, info=False):
-        # for tests:
-        # logs = []
-        # time1 = datetime.datetime.now()
 
-        # number_of_primes = 0
-        # potencial_big_prime = file_number * self.LEN
         last_element = (file_number - 1) * (self.LEN)
-
-        square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1  # ???
-
+        square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
         temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
 
         primes_counter = 0
         find_tag_number = self.primes[primes_counter]
 
-
         # FIND AND TAG
-
         while find_tag_number <= square_range:
             # missing elements on beginning
             missing = (last_element - ((find_tag_number - 1) // 2)) % find_tag_number
@@ -116,17 +107,5 @@ class SieveCalculation:
             primes_counter += 1
             find_tag_number = self.primes[primes_counter]  # REFERENCE TO self.primes - multi !
 
-        # SAVING BIT FILES
         temp_tab = temp_tab[:self.LEN]
-        #file_name = self.file_name + str(file_number) + '.bin'
-
-        ### !!! niech funkcja zwraca tablice, a beda one zapisywane w osobnej metodzie / osobnym wątku
-        #
-        '''t = threading.Thread(target = self.save_file, args=(file_name, temp_tab))
-        t.start()
-        t.join()
-        '''
-        # time2 = datetime.datetime.now()
-        # if info:
-        #     print(f'File number: {file_number} created in {(time2 - time1)}')
         return temp_tab

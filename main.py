@@ -84,11 +84,11 @@ class Sieve():
     # 1000000000000000199999999 #kwadrylion
 
 
-    # def max_range(self): #jaki maksymalny nr pliku mozna wygenerowac z liczb aktualnie wczytanych
-    #     act_range = self.primes[-1] ** 2
-    #     max_file = act_range // 200_000_000 - 1
-    #     print(f'Maximum range: {more_legible(act_range)} -> {order_of_magnitude(act_range)} ')
-    #     print(f'__ Maximum file number possible to create is: {max_file}')
+    def max_range(self): #jaki maksymalny nr pliku mozna wygenerowac z liczb aktualnie wczytanych
+        act_range = self.primes[-1] ** 2
+        max_file = act_range // 200_000_000 - 1
+        print(f'Maximum range: {more_legible(act_range)} -> {order_of_magnitude(act_range)} ')
+        print(f'__ Maximum file number possible to create is: {max_file}')
     @timed
     def find_max_in_range(self, x_start):  # DO CALKOWITEJ POPRAWY
         file_number = 1
@@ -152,42 +152,42 @@ class Sieve():
                 return number
 
 
-    # def get_max_range_from(self, file_number): #jaki maksymalny nr pliku mozna wygenerowac z liczb DO podanego pliku wlacznie
-    #     try:
-    #         temp = bit_file_to_array_of_primes(str(file_number))
-    #     except:
-    #         print('This file doesnt exist. Creating...')
-    #         self.create_file(file_number)
-    #         temp = bit_file_to_array_of_primes(str(file_number))
-    #     finally:
-    #         pass
-    #
-    #     max_file = int(temp[-1] ** 2 / self.LEN / 2)
-    #     max_file_text = 'Max file number: ' + str(more_legible(max_file))
-    #     size = "Size of all files: " + str(int(12_200 * max_file / 1024 / 1024)) + " GB"
-    #     return temp[-1], more_legible(temp[-1] ** 2), order_of_magnitude(temp[-1] ** 2), max_file_text, size
+    def get_max_range_from(self, file_number): #jaki maksymalny nr pliku mozna wygenerowac z liczb DO podanego pliku wlacznie
+        try:
+            temp = bit_file_to_array_of_primes(str(file_number))
+        except:
+            print('This file doesnt exist. Creating...')
+            self.create_file(file_number)
+            temp = bit_file_to_array_of_primes(str(file_number))
+        finally:
+            pass
 
-    # @timed
-    # def generate_initial_file(self): #calculation
-    #
-    #     temp_tab = (self.LEN) * bitarray('0')
-    #     temp_tab[:1] = 1
-    #     index = 2
-    #
-    #     square_range = math.ceil(math.sqrt(self.LEN * 2)) + 1
-    #     while index < square_range:
-    #         act_number = index * 2 - 1  # id 2 = 3, id 3 = 5, ...
-    #         if temp_tab[index] == 0:
-    #             self.primes.append(act_number)
-    #             cross_out_index = index + act_number  # 2 + 3 = 5 -> [0,1,3,5,7,(9),11
-    #             temp_tab[cross_out_index: self.LEN: act_number] = 1
-    #         index += 1
-    #
-    #     temp_tab = temp_tab[:self.LEN]
-    #
-    #     file_name = self.file_name + '1.bin'
-    #     with open(file_name, 'wb') as fh:
-    #         temp_tab.tofile(fh)
+        max_file = int(temp[-1] ** 2 / self.LEN / 2)
+        max_file_text = 'Max file number: ' + str(more_legible(max_file))
+        size = "Size of all files: " + str(int(12_200 * max_file / 1024 / 1024)) + " GB"
+        return temp[-1], more_legible(temp[-1] ** 2), order_of_magnitude(temp[-1] ** 2), max_file_text, size
+
+    @timed
+    def generate_initial_file(self): #calculation
+
+        temp_tab = (self.LEN) * bitarray('0')
+        temp_tab[:1] = 1
+        index = 2
+
+        square_range = math.ceil(math.sqrt(self.LEN * 2)) + 1
+        while index < square_range:
+            act_number = index * 2 - 1  # id 2 = 3, id 3 = 5, ...
+            if temp_tab[index] == 0:
+                self.primes.append(act_number)
+                cross_out_index = index + act_number  # 2 + 3 = 5 -> [0,1,3,5,7,(9),11
+                temp_tab[cross_out_index: self.LEN: act_number] = 1
+            index += 1
+
+        temp_tab = temp_tab[:self.LEN]
+
+        file_name = self.file_name + '1.bin'
+        with open(file_name, 'wb') as fh:
+            temp_tab.tofile(fh)
     #self.random_test_one_file(1)
 
     def add_to_primes_data(self, from_x, to_y): #menager

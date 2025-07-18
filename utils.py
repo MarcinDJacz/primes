@@ -6,6 +6,15 @@ import zipfile
 
 LEN = 100_000_000  # 111546435#
 
+def timed(func):
+    def wrapper(*args, **kwargs):
+        start = datetime.datetime.now()
+        res = func(*args, **kwargs)
+        end = datetime.datetime.now()
+        print(f"{func.__name__} "
+              f"ran for {end - start} ns")
+        return res
+    return wrapper
 
 def is_prime(p):
     # t1 = datetime.datetime.now()
@@ -31,11 +40,9 @@ def read_bits(nr, base_name="bits_file"):
 def bit_file_to_array_of_primes(nr=1, dlugosc=LEN, base_name="bits_file"):
     file_name = base_name + str(nr) + '.bin'
     tab = []
-    # time1 = datetime.datetime.now()
     a = bitarray.bitarray()
     with open(file_name, 'rb') as fh:
         a.fromfile(fh)
-        # x = int(file_name[9:-4]) - 1
     x = nr - 1
     x = x * 2 * dlugosc  #
 
@@ -47,14 +54,11 @@ def bit_file_to_array_of_primes(nr=1, dlugosc=LEN, base_name="bits_file"):
 
     for z in range(len(a)):
         if a[z] == 0:  # is prime
-            tab.append((x + 2 * z + temp))  #
-
-    # time2 = datetime.datetime.now()
-    # print(' in: ', (time2-time1))
+            tab.append((x + 2 * z + temp))
     if nr == 1:
         return (tab[1:])  # delete "1"
     return tab
-
+# chbya nieptorzebne
 
 def more_legible(number):
     real_range = str(number)

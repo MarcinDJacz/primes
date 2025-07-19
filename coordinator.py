@@ -1,14 +1,21 @@
 import math
 import bisect
+import multiprocessing
+from concurrent.futures.process import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from primes.prime_calculator import SieveCalculation
 from primes.file_manager import SieveFileManager
 from utils import timed
+from multiprocessing import Pool
+
 
 class PrimeCoordinator:
     def __init__(self, length_per_file: int = 100_000_000):
         self.LEN = length_per_file
         self.file_manager = SieveFileManager(length_per_file)
         self.calculator = SieveCalculation(length_per_file)
+        self.full_primes = []
         try:
             self.full_primes = self.file_manager.bit_file_to_array_of_primes(1)
         except FileNotFoundError:
@@ -25,7 +32,7 @@ class PrimeCoordinator:
         #self.actual_range, self.max_file = self.calculator.max_range()
         print(f"{len(self.full_primes)} primes loaded.")
         print("Last prime number: ", self.full_primes[-1])
-        self.calculator.primes = self.full_primes[:27832]
+        #self.calculator.primes = self.full_primes[:27832]
     def get_max_range_from_file(self, file_number: int) -> tuple[int, str, str]:
         """
         Retrieve prime numbers from the specified file and calculate the maximum
@@ -62,57 +69,59 @@ class PrimeCoordinator:
     @timed
     def create_files(self, start_file, end_file: int):
         max_number = (end_file + 1) * self.LEN * 2
-        #print(f"end file: {end_file}")
-
-        #print(f"last prime: {self.full_primes[-1]}")
         limit = int(pow(max_number, 1/2)) + 1
-        #print(f"Max number: {limit}")
         index_limit = bisect.bisect_right(self.full_primes, limit)
-        #print(f"limit index found in: {index_limit}")
-        '''
-        20 files (10 -> 19)
-        create_files ran for 0:00:15.656483 ns
-        create_files ran for 0:00:15.464452 ns  vs
-        1.23% difference
-  
-        20 files (1000 -> 1019)
-        create_files ran for 0:00:20.944686 ns  vs
-        create_files ran for 0:00:19.047710 ns
-        9.06% difference
-        
-        20 files (10_000 -> 10_019)
-        create_files ran for 0:00:21.093284 ns  vs
-        create_files ran for 0:00:20.809433 ns
-        1.35% difference
-        '''
-        #self.calculator.primes = self.full_primes[:index_limit]
+        self.calculator.primes = self.full_primes[:index_limit]
         #self.calculator.primes = self.full_primes
         print(f"Primes cut to {len(self.calculator.primes)} primes.")
-        #print(f"last primes in calc: {self.calculator.primes[-1]}")
         #single thread
         for file in range(start_file, end_file + 1):
             data = self.calculator.create_file(file)
             self.file_manager.save(file, data)
 
-        #print(f"{end_file + 1 - start_file} files created.")
+    def compute_file(self, file_number, primes_snapshot):
+        local_calculator = SieveCalculation(self.LEN)
+        local_calculator.primes = primes_snapshot.copy()
+        data = self.calculator.create_file(file_number)
+        return file_number, data
 
+    @timed
+    def create_files_parallel(self, start_file, end_file):
+        files = list(range(start_file, end_file + 1))
+        primes_snapshot = self.full_primes  # lub ograniczona lista
 
-Sieve = PrimeCoordinator()
-#Sieve.load_primes_from_files(10, 19)
+        # with multiprocessing.Pool() as pool:
+        #     # przekazujemy jako krotki argumentów file_number i primes_snapshot
+        #     args = [(file, primes_snapshot) for file in files]
+        #     results = pool.starmap(self.create_file_parallel, args)
+        file_numbers = range(start_file, end_file + 1)
+        with ProcessPoolExecutor() as executor:
+            results = list(executor.map(self.compute_file, file_numbers))
 
-#Sieve.create_files(5000, 5019)
-import os
+        for file_number, data in results:
+            self.file_manager.save(file_number, data)
 
-for x in range(2):
-    start_file = x * 500 + 1
-    end_file = x * 500 + 20
-    Sieve.create_files(start_file, end_file)
-    for file_num in range(start_file, end_file + 1):
-        if file_num == 1:
-            continue
-        file_name = f"bits_file{file_num}.bin"  # dostosuj do faktycznej nazwy pliku
-        try:
-            os.remove(file_name)
-            #print(f"Deleted {file_name}")
-        except FileNotFoundError:
-            print(f"{file_name} not found, skipping delete.")
+if __name__ == "__main__":
+
+    Sieve = PrimeCoordinator()
+    #Sieve.create_files(2,3)
+    #Sieve.load_primes_from_files(10, 19)
+
+    #Sieve.create_files(10, 20)
+    Sieve.create_files_parallel(10, 20)
+
+# import os
+#
+# for x in range(10):
+#     start_file = x * 500 + 2
+#     end_file = x * 500 + 21
+#     Sieve.create_files(start_file, end_file)
+#     for file_num in range(start_file, end_file + 1):
+#         if file_num == 1:
+#             continue
+#         file_name = f"bits_file{file_num}.bin"  # dostosuj do faktycznej nazwy pliku
+#         try:
+#             os.remove(file_name)
+#             #print(f"Deleted {file_name}")
+#         except FileNotFoundError:
+#             print(f"{file_name} not found, skipping delete.")

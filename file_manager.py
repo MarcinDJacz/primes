@@ -1,4 +1,4 @@
-
+import datetime
 import bitarray
 
 class SieveFileManager:
@@ -7,9 +7,12 @@ class SieveFileManager:
         self.file_name = 'bits_file'
 
     def save(self, file_number: int, data):
+        #t1 = datetime.datetime.now()
         file_name = self.file_name + str(file_number) + '.bin'
         with open(file_name, 'wb') as fh:
             data.tofile(fh)
+        #t2 = datetime.datetime.now()
+        #print(f"Wrote in {t2-t1}s")
 
     def bit_file_to_array_of_primes(self, nr):
         file_name = self.file_name + str(nr) + '.bin'

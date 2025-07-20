@@ -33,6 +33,8 @@ Measured using 10 consecutive file generations in batches of 20 files each (`sta
 
 
 
+--------------------------------------------------------------
+
 
 ## ⏱️ Performance Comparison: Slicing Every 500 vs Once
 
@@ -52,3 +54,15 @@ Measured using 10 consecutive file generations in batches of 20 files each (`sta
 
 ### ✅ Conclusion:
 Slicing once instead of every 500 files gives nearly identical performance in this case, with less complexity.
+
+
+--------------------------------------------------------------
+
+
+Compression and decompression files
+Single-Thread : ~10s per file
+Multi-Thread : ~16s per 10 files
+
+
+--------------------------------------------------------------
+

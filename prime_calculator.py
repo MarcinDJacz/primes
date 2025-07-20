@@ -1,7 +1,7 @@
 import math
 import datetime
 from bitarray import bitarray
-from utils import more_legible, order_of_magnitude
+from .utils import more_legible, order_of_magnitude
 
 
 class SieveCalculation:

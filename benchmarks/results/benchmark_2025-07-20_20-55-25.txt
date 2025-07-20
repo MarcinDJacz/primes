@@ -1,0 +1,9 @@
+Compression of 10 files.
+   Single compression time:           121.998 s
+   Original size of first file:       11.92 MB
+   Compressed size of first file:     6.42 MB
+   Compression ratio:                 0.54
+
+   Parallel compression time:         16.872 s.
+   Parallel/Single ratio:             0.138
+   About 86.17% faster.

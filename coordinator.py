@@ -1,3 +1,4 @@
+import datetime
 import math
 import bisect
 import multiprocessing
@@ -6,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from primes.prime_calculator import SieveCalculation
 from primes.file_manager import SieveFileManager
-from utils import timed
+from .utils import timed
 from multiprocessing import Pool
 
 
@@ -101,14 +102,66 @@ class PrimeCoordinator:
         for file_number, data in results:
             self.file_manager.save(file_number, data)
 
+    @timed
+    def compress_file(self, file):
+        self.file_manager.compress_file(file)
+
+    @timed
+    def decompress_file(self, file):
+        self.file_manager.decompress_file(file)
+
+
+import gzip
+import shutil
+import os
+def compress_file(path):
+        compressed_path = path + '.gz'
+        with open(path, 'rb') as f_in, gzip.open(compressed_path, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+        return compressed_path
+
+
 if __name__ == "__main__":
+    def print_file_size_mb(file_path):
+        import os
+        size_bytes = os.path.getsize(file_path)
+        size_mb = size_bytes / (1024 * 1024)
+        print(f"Rozmiar pliku '{file_path}': {size_mb:.2f} MB")
 
     Sieve = PrimeCoordinator()
-    #Sieve.create_files(2,3)
+    print(Sieve.calculator.primes[:10])
+    a= input()
+    # Sieve.create_files(2, 3)
+    # print_file_size_mb('bits_file3.bin')
+    # Sieve.compress_file('bits_file3.bin')
+    #
+    # print_file_size_mb('bits_file3.bin.gz')
+    # Sieve.decompress_file('bits_file3.bin.gz')
+    # print_file_size_mb('bits_file3.bin')
+
+    print('---- test rownoleglych -----')
+    from concurrent.futures import ProcessPoolExecutor
+
+
+
+    #Sieve.create_files(2, 13)
+    files_to_compress = [f"bits_file{x}.bin" for x in range(2, 12)]
+    t1 = datetime.datetime.now()
+    with ProcessPoolExecutor() as executor:
+        compressed_files = list(executor.map(compress_file, files_to_compress))
+    t2 = datetime.datetime.now()
+    print(f"obliczono w {t2-t1}s")
+    print("Skompresowane pliki:")
+    print(compressed_files)
+
+
+
+
+
     #Sieve.load_primes_from_files(10, 19)
 
     #Sieve.create_files(10, 20)
-    Sieve.create_files_parallel(10, 20)
+    #Sieve.create_files_parallel(10, 20)
 
 # import os
 #

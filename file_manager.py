@@ -4,6 +4,8 @@ import os
 import gzip
 import shutil
 
+from primes.utils import timed
+
 
 class SieveFileManager:
     def __init__(self, length_per_file: int) -> None:
@@ -15,7 +17,8 @@ class SieveFileManager:
         with open(file_name, 'wb') as fh:
             data.tofile(fh)
 
-    def bit_file_to_array_of_primes(self, nr) -> list[int]:
+    @timed
+    def bit_file_to_array_of_primes(self, nr: int) -> list[int]:
         """
             Load a bitarray file and return a list of prime numbers.
 
@@ -49,6 +52,13 @@ class SieveFileManager:
         if nr == 1:
             return (array[1:])  # delete "1"
         return array
+
+    def read_bits(self, nr: int) -> bitarray:
+        file_name = self.file_name + str(nr) + '.bin'
+        a = bitarray.bitarray()
+        with open(file_name, 'rb') as fh:
+            a.fromfile(fh)
+        return a
 
     @staticmethod
     def compress_file(input_path: str,

@@ -3,6 +3,8 @@ import bitarray
 import random
 from multiprocessing import Pool
 import zipfile
+import os
+
 
 LEN = 100_000_000  # 111546435#
 
@@ -35,30 +37,6 @@ def read_bits(nr, base_name="bits_file"):
     with open(file_name, 'rb') as fh:
         a.fromfile(fh)
     return a
-
-
-def bit_file_to_array_of_primes(nr=1, dlugosc=LEN, base_name="bits_file"):
-    file_name = base_name + str(nr) + '.bin'
-    tab = []
-    a = bitarray.bitarray()
-    with open(file_name, 'rb') as fh:
-        a.fromfile(fh)
-    x = nr - 1
-    x = x * 2 * dlugosc  #
-
-    # only for file nr 1
-    if nr == 1:
-        temp = -1
-    else:
-        temp = 1
-
-    for z in range(len(a)):
-        if a[z] == 0:  # is prime
-            tab.append((x + 2 * z + temp))
-    if nr == 1:
-        return (tab[1:])  # delete "1"
-    return tab
-# chbya nieptorzebne
 
 def more_legible(number):
     real_range = str(number)
@@ -112,19 +90,8 @@ def how_much_bin_files_in_directory():
     print(f"Found {files_count} files in main directory, {files_in_order_count} in order.")
     return files_count, files_in_order_count
 
+def print_file_size_mb(file_path):
 
-def zip_file(file_number):  # add optional delete original file + unziping function
-
-    compression = zipfile.ZIP_DEFLATED
-    file_name1 = 'zip_bits_file' + str(file_number) + '.zip'
-
-    zf = zipfile.ZipFile(file_name1, mode='w')
-    file_name = 'bits_file' + str(file_number) + '.bin'
-    try:
-        zf.write(file_name, compress_type=compression)
-    finally:
-        zf.close()
-
-
-def unzip_file(file_number):
-    pass
+    size_bytes = os.path.getsize(file_path)
+    size_mb = size_bytes / (1024 * 1024)
+    print(f"Rozmiar pliku '{file_path}': {size_mb:.2f} MB")

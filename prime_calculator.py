@@ -85,7 +85,6 @@ class SieveCalculation:
         return temp_tab
 
     def create_file(self, file_number, info=False):
-
         last_element = (file_number - 1) * (self.LEN)
         square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
         temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
@@ -109,3 +108,19 @@ class SieveCalculation:
 
         temp_tab = temp_tab[:self.LEN]
         return temp_tab
+
+    def prime_generator_from_bits(self, a: bitarray, nr: int):
+        x = (nr - 1) * 2 * self.LEN
+        if nr == 1:
+            offset = -1
+        else:
+            offset = 1
+
+        for z, bit in enumerate(a):
+            if bit == 0:
+                val = x + 2 * z + offset
+                if nr == 1 and val == 1:
+                    continue
+                yield val
+
+

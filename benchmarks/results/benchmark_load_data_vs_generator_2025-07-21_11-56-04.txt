@@ -1,0 +1,15 @@
+[List load]
+   Time: 5.128 s
+   Memory used: 428.10 MB
+
+[Generator traversal]
+   Time: 4.739 s
+   Memory used: 11.93 MB
+
+[Comparison]
+   Generator is 7.59% faster
+   Generator uses 97.21% less memory
+
+Raw differences:
+   Time saved: 0.389 s
+   Memory saved: 416.17 MB

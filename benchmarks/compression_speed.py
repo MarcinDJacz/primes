@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
 
+from primes.benchmarks.utils import generate_timestamp_filename
 from primes.file_manager import SieveFileManager
 from primes.coordinator import PrimeCoordinator
 
@@ -52,9 +53,9 @@ if __name__ == "__main__":
     ratio = parallel_time / single_time
     percent_faster = (1 - ratio) * 100
 
-    filename = datetime.now().strftime("benchmark_%Y-%m-%d_%H-%M-%S.txt")
-
-    with open(f"results/{filename}", "w") as f:
+    #filename = datetime.now().strftime("benchmark_%Y-%m-%d_%H-%M-%S.txt")
+    filename = generate_timestamp_filename("benchmark_compression_speed")
+    with open(filename, "w") as f:
         f.write(f"{test1}\n{test2}")
         f.write(f"   {'Parallel/Single ratio:':35}{ratio:.3f}\n")
         f.write(f"   About {percent_faster:.2f}% faster.")

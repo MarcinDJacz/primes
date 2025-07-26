@@ -25,6 +25,31 @@ class SieveCalculation:
                 return False
         return True
 
+    def is_prime_optimized(self, number):
+        '''
+        better method for checking prime numbers
+        :param number: the number being checked to see
+         if it is a prime number
+        :return: True if number is a prime number
+        '''
+        if self.primes[-1] ** 2 > number:
+            if number == 2 or number == 3:
+                return True
+            elif number % 2 == 0:
+                return False
+            else:
+                square = int(number ** (1 / 2))
+                x = 1
+                actual_number = self.primes[x]
+                while actual_number < square:
+                    if number % self.primes[x] == 0:
+                        return False
+                    x += 1
+                    actual_number = self.primes[x]
+                return True
+        else:
+            print('More primes in data needed.')
+
     def max_range(self) -> tuple[int, int]:
         '''
         :return: tuple: maximum range and file number that can be generated
@@ -88,7 +113,6 @@ class SieveCalculation:
         last_element = (file_number - 1) * (self.LEN)
         square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
         temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
-
         primes_counter = 0
         find_tag_number = self.primes[primes_counter]
 
@@ -101,10 +125,39 @@ class SieveCalculation:
                 temp_tab[0] = 1
             else:
                 index = find_tag_number - missing
-            temp_tab[index] = 1#?
+            temp_tab[index] = 1  # ?
             temp_tab[index: self.LEN: find_tag_number] = 1  # cala wykreslanka
             primes_counter += 1
             find_tag_number = self.primes[primes_counter]  # REFERENCE TO self.primes - multi !
+
+        temp_tab = temp_tab[:self.LEN]
+        return temp_tab
+
+    def create_file_generator(self, file_number, data: bitarray):
+        last_element = (file_number - 1) * (self.LEN)
+        square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
+        temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
+
+        #primes_counter = 0
+        find_tag_number = 0
+        prime_generator = self.prime_generator_from_bits(data, 1)
+        # FIND AND TAG
+        while find_tag_number <= square_range:
+            try:
+                find_tag_number = next(prime_generator)
+            except StopIteration:
+                break
+            # missing elements on beginning
+            missing = (last_element - ((find_tag_number - 1) // 2)) % find_tag_number
+            if missing == 0:
+                index = 0
+                temp_tab[0] = 1
+            else:
+                index = find_tag_number - missing
+            temp_tab[index] = 1#?
+            temp_tab[index: self.LEN: find_tag_number] = 1  # cala wykreslanka
+            #primes_counter += 1
+            #find_tag_number = self.primes[primes_counter]  # REFERENCE TO self.primes - multi !
 
         temp_tab = temp_tab[:self.LEN]
         return temp_tab
@@ -122,5 +175,3 @@ class SieveCalculation:
                 if nr == 1 and val == 1:
                     continue
                 yield val
-
-

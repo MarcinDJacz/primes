@@ -1,20 +1,15 @@
-import datetime
 import math
 import bisect
-import multiprocessing
-from concurrent.futures.process import ProcessPoolExecutor
 from concurrent.futures import ProcessPoolExecutor
-from functools import partial
 from primes.prime_calculator import SieveCalculation
 from primes.file_manager import SieveFileManager
 from primes.utils import timed
-from multiprocessing import Pool
 
 
 class PrimeCoordinator:
     def __init__(self, length_per_file: int = 100_000_000):
         self.LEN = length_per_file
-        self.file_manager = SieveFileManager(length_per_file)
+        self.file_manager = SieveFileManager(length_per_file, )
         self.calculator = SieveCalculation(length_per_file)
         self.full_primes = []
         try:
@@ -27,6 +22,7 @@ class PrimeCoordinator:
             print("Basic file created and loaded correctly.")
         finally:
             print(f"File nr1 loaded and added to primes. Last prime is: {self.full_primes[-1]}")
+        self.calculator.primes = self.full_primes.copy()
 
 
         #print(self.full_primes[:20])
@@ -65,7 +61,12 @@ class PrimeCoordinator:
     def trim_primes_for_file(self, max_file_number: int):
         limit = int(math.sqrt((max_file_number + 1) * self.LEN))
         cutoff_index = bisect.bisect_right(self.calculator.primes, limit)
+
         self.calculator.primes = self.calculator.primes[:cutoff_index]
+
+    def create_one_file(self, file_number: int):
+        data = self.calculator.create_file(file_number)
+        self.file_manager.save(file_number, data)
 
     @timed
     def create_files(self, start_file, end_file: int):
@@ -109,29 +110,22 @@ class PrimeCoordinator:
     @timed
     def decompress_file(self, file):
         self.file_manager.decompress_file(file)
+
 @timed
-def aaa():
-    tab = []
-    for prime in Sieve.calculator.prime_generator_from_bits(bits, 1):
-        tab.append(prime)
-    return tab
+def a():
+    return Sieve.calculator.create_file(2)
+
+@timed
+def b():
+    data = Sieve.file_manager.read_bits(1)
+    return Sieve.calculator.create_file_generator(2, data)
 
 if __name__ == "__main__":
     Sieve = PrimeCoordinator()
-    print(Sieve.full_primes[:10])
-    bits = Sieve.file_manager.read_bits(1)
-    a = Sieve.file_manager.bit_file_to_array_of_primes(1)
-    b = aaa()
+    print(Sieve.full_primes[:20])
+    a = a()
+    b = b()
     print(a==b)
-    print(a[:10])
-    print(a[-1])
-    print(b[:10])
-    print(b[-1])
-
-    a= input('koniec')
-    # Sieve.create_files(2, 3)
-
-
     #Sieve.load_primes_from_files(10, 19)
 
     #Sieve.create_files(10, 20)

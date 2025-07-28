@@ -23,13 +23,9 @@ class PrimeCoordinator:
         finally:
             print(f"File nr1 loaded and added to primes. Last prime is: {self.full_primes[-1]}")
         self.calculator.primes = self.full_primes.copy()
-
-
-        #print(self.full_primes[:20])
-        #self.actual_range, self.max_file = self.calculator.max_range()
         print(f"{len(self.full_primes)} primes loaded.")
         print("Last prime number: ", self.full_primes[-1])
-        #self.calculator.primes = self.full_primes[:27832]
+
     def get_max_range_from_file(self, file_number: int) -> tuple[int, str, str]:
         """
         Retrieve prime numbers from the specified file and calculate the maximum
@@ -44,7 +40,7 @@ class PrimeCoordinator:
         primes = self.file_manager.bit_file_to_array_of_primes(file_number)
         return self.calculator.get_max_range_from_primes(primes)
 
-    def load_primes_from_files(self, start_file: int, end_file: int):
+    def load_primes_from_files(self, start_file: int, end_file: int) -> None:
         """
         Loads prime numbers from bit files in the range [start_file, end_file)
         and extends the internal prime list with them.
@@ -56,20 +52,39 @@ class PrimeCoordinator:
             self.full_primes.extend(self.file_manager.bit_file_to_array_of_primes(file_number))
             print(f"File nr {file_number} loaded")
         print("Last prime number: ", self.full_primes[-1])
-        #self.calculator.max_range()
 
-    def trim_primes_for_file(self, max_file_number: int):
+    def trim_primes_for_file(self, max_file_number: int) -> None:
+        """
+            Trims the list of primes to include only those necessary for generating
+            bit arrays up to the given file number.
+
+            The cutoff is determined as sqrt((max_file_number + 1) * LEN), since primes
+            larger than that are not needed for sieving numbers in the given range.
+            This helps optimize memory usage during file generation.
+
+            Args:
+                max_file_number (int): The highest file number to be generated,
+                determining the upper bound for required primes.
+        """
         limit = int(math.sqrt((max_file_number + 1) * self.LEN))
         cutoff_index = bisect.bisect_right(self.calculator.primes, limit)
-
         self.calculator.primes = self.calculator.primes[:cutoff_index]
 
-    def create_one_file(self, file_number: int):
+    def create_one_file(self, file_number: int) -> None:
+        """
+        Create one specify file.
+        :param file_number:
+        """
         data = self.calculator.create_file(file_number)
         self.file_manager.save(file_number, data)
 
     @timed
-    def create_files(self, start_file, end_file: int):
+    def create_files(self, start_file: int, end_file: int) -> None:
+        """
+        Create range of files, in single-thread.
+        :param start_file: first file
+        :param end_file: last file
+        """
         max_number = (end_file + 1) * self.LEN * 2
         limit = int(pow(max_number, 1/2)) + 1
         index_limit = bisect.bisect_right(self.full_primes, limit)
@@ -81,68 +96,43 @@ class PrimeCoordinator:
             data = self.calculator.create_file(file)
             self.file_manager.save(file, data)
 
-    def compute_file(self, file_number, primes_snapshot):
-        local_calculator = SieveCalculation(self.LEN)
-        local_calculator.primes = primes_snapshot.copy()
-        data = self.calculator.create_file(file_number)
-        return file_number, data
+    # def compute_file(self, file_number, primes_snapshot):
+    #     local_calculator = SieveCalculation(self.LEN)
+    #     local_calculator.primes = primes_snapshot.copy()
+    #     data = self.calculator.create_file(file_number)
+    #     return file_number, data
+    #
+    # @timed
+    # def create_files_parallel(self, start_file, end_file):
+    #     files = list(range(start_file, end_file + 1))
+    #     primes_snapshot = self.full_primes
+    #
+    #     # with multiprocessing.Pool() as pool:
+    #     #     args = [(file, primes_snapshot) for file in files]
+    #     #     results = pool.starmap(self.create_file_parallel, args)
+    #     file_numbers = range(start_file, end_file + 1)
+    #     with ProcessPoolExecutor() as executor:
+    #         results = list(executor.map(self.compute_file, file_numbers))
+    #
+    #     for file_number, data in results:
+    #         self.file_manager.save(file_number, data)
 
     @timed
-    def create_files_parallel(self, start_file, end_file):
-        files = list(range(start_file, end_file + 1))
-        primes_snapshot = self.full_primes  # lub ograniczona lista
-
-        # with multiprocessing.Pool() as pool:
-        #     # przekazujemy jako krotki argumentów file_number i primes_snapshot
-        #     args = [(file, primes_snapshot) for file in files]
-        #     results = pool.starmap(self.create_file_parallel, args)
-        file_numbers = range(start_file, end_file + 1)
-        with ProcessPoolExecutor() as executor:
-            results = list(executor.map(self.compute_file, file_numbers))
-
-        for file_number, data in results:
-            self.file_manager.save(file_number, data)
-
-    @timed
-    def compress_file(self, file):
+    def compress_file(self, file: str) -> None:
         self.file_manager.compress_file(file)
 
     @timed
-    def decompress_file(self, file):
+    def decompress_file(self, file: str) -> None:
         self.file_manager.decompress_file(file)
 
-@timed
-def a():
-    return Sieve.calculator.create_file(2)
-
-@timed
-def b():
-    data = Sieve.file_manager.read_bits(1)
-    return Sieve.calculator.create_file_generator(2, data)
 
 if __name__ == "__main__":
     Sieve = PrimeCoordinator()
-    print(Sieve.full_primes[:20])
-    a = a()
-    b = b()
-    print(a==b)
-    #Sieve.load_primes_from_files(10, 19)
-
-    #Sieve.create_files(10, 20)
-    #Sieve.create_files_parallel(10, 20)
-
-# import os
-#
-# for x in range(10):
-#     start_file = x * 500 + 2
-#     end_file = x * 500 + 21
-#     Sieve.create_files(start_file, end_file)
-#     for file_num in range(start_file, end_file + 1):
-#         if file_num == 1:
-#             continue
-#         file_name = f"bits_file{file_num}.bin"  # dostosuj do faktycznej nazwy pliku
-#         try:
-#             os.remove(file_name)
-#             #print(f"Deleted {file_name}")
-#         except FileNotFoundError:
-#             print(f"{file_name} not found, skipping delete.")
+    """
+    bechmarks and results       -> benchmakrs directory
+    tests                       -> tests directory
+    performance observations    -> docs directory
+    
+    TO DO:
+        - create_files_parallel with bigger packages
+    """

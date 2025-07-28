@@ -129,6 +129,7 @@ class PrimeCoordinator:
 if __name__ == "__main__":
     Sieve = PrimeCoordinator()
     """
+    commentary:
     bechmarks and results       -> benchmakrs directory
     tests                       -> tests directory
     performance observations    -> docs directory

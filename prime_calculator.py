@@ -1,6 +1,7 @@
 import math
 import datetime
 from bitarray import bitarray
+from typing import Generator
 from .utils import more_legible, order_of_magnitude
 
 
@@ -11,12 +12,12 @@ class SieveCalculation:
 
 
     def is_prime_basic(self, number) -> bool:
-        '''
+        """
         standard method for checking prime numbers
         :param number: the number being checked to see
          if it is a prime number
         :return: True if number is a prime number
-        '''
+        """
         sq = int(number ** (1 / 2))
         if number % 2 == 0:
             return False
@@ -26,12 +27,12 @@ class SieveCalculation:
         return True
 
     def is_prime_optimized(self, number):
-        '''
+        """
         better method for checking prime numbers
         :param number: the number being checked to see
          if it is a prime number
         :return: True if number is a prime number
-        '''
+        """
         if self.primes[-1] ** 2 > number:
             if number == 2 or number == 3:
                 return True
@@ -51,10 +52,10 @@ class SieveCalculation:
             print('More primes in data needed.')
 
     def max_range(self) -> tuple[int, int]:
-        '''
+        """
         :return: tuple: maximum range and file number that can be generated
         from the loaded prime numbers
-        '''
+        """
         act_range = self.primes[-1] ** 2
         max_file = (act_range // 200_000_000) - 1
         print(f'Maximum range: {more_legible(act_range)} '
@@ -109,7 +110,14 @@ class SieveCalculation:
         temp_tab = temp_tab[:self.LEN]
         return temp_tab
 
-    def create_file(self, file_number, info=False):
+    def create_file(self, file_number) -> bitarray:
+        """
+            Creates a bitarray where prime numbers are marked as 1 and saves it to a binary file.
+            Parameters:
+                file_number (int): The identifier used in the generated file's name.
+            Returns:
+                bitarray: A bitarray with bits set to 1 for prime indices and 0 otherwise.
+        """
         last_element = (file_number - 1) * (self.LEN)
         square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
         temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
@@ -126,14 +134,22 @@ class SieveCalculation:
             else:
                 index = find_tag_number - missing
             temp_tab[index] = 1  # ?
-            temp_tab[index: self.LEN: find_tag_number] = 1  # cala wykreslanka
+            temp_tab[index: self.LEN: find_tag_number] = 1  # all magic
             primes_counter += 1
-            find_tag_number = self.primes[primes_counter]  # REFERENCE TO self.primes - multi !
+            find_tag_number = self.primes[primes_counter]
 
         temp_tab = temp_tab[:self.LEN]
         return temp_tab
 
-    def create_file_generator(self, file_number, data: bitarray):
+    def create_file_generator(self, file_number, data: bitarray) -> bitarray:
+        """
+           Creates a bitarray based on a generator, where prime numbers are marked as 1, and saves it to a binary file.
+           Parameters:
+               file_number (int): The identifier used in the generated file's name.
+               data (bitarray): Input bitarray representing the prime generation source.
+           Returns:
+               bitarray: A bitarray with bits set to 1 for prime indices, generated from the provided data.
+        """
         last_element = (file_number - 1) * (self.LEN)
         square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
         temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
@@ -155,14 +171,20 @@ class SieveCalculation:
             else:
                 index = find_tag_number - missing
             temp_tab[index] = 1#?
-            temp_tab[index: self.LEN: find_tag_number] = 1  # cala wykreslanka
-            #primes_counter += 1
-            #find_tag_number = self.primes[primes_counter]  # REFERENCE TO self.primes - multi !
+            temp_tab[index: self.LEN: find_tag_number] = 1  # all magic
 
         temp_tab = temp_tab[:self.LEN]
         return temp_tab
 
-    def prime_generator_from_bits(self, a: bitarray, nr: int):
+    def prime_generator_from_bits(self, a: bitarray, nr: int) -> Generator[int, None, None]:
+        """
+            Yields prime numbers represented by bits in the given bitarray.
+            Parameters:
+                a (bitarray): Bitarray where 0 indicates a prime number at a specific position.
+                nr (int): The chunk number used to calculate offset and starting value.
+            Yields:
+                int: Prime numbers corresponding to unset bits (0) in the bitarray.
+        """
         x = (nr - 1) * 2 * self.LEN
         if nr == 1:
             offset = -1

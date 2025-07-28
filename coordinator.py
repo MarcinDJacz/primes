@@ -89,7 +89,6 @@ class PrimeCoordinator:
         limit = int(pow(max_number, 1/2)) + 1
         index_limit = bisect.bisect_right(self.full_primes, limit)
         self.calculator.primes = self.full_primes[:index_limit]
-        #self.calculator.primes = self.full_primes
         print(f"Primes cut to {len(self.calculator.primes)} primes.")
         #single thread
         for file in range(start_file, end_file + 1):
@@ -129,7 +128,6 @@ class PrimeCoordinator:
 if __name__ == "__main__":
     Sieve = PrimeCoordinator()
     """
-    commentary:
     bechmarks and results       -> benchmakrs directory
     tests                       -> tests directory
     performance observations    -> docs directory

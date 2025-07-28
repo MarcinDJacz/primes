@@ -1,3 +1,4 @@
 *.bin
 *.bin.gz
 .env
+archive

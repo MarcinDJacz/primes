@@ -54,11 +54,16 @@ class SieveFileManager:
         return array
 
     def read_bits(self, nr: int) -> bitarray:
+        """
+            Reads a binary file with the given number and returns its contents as a bitarray.
+            Parameters: nr (int): The file number to read (e.g., 3 → 'filename3.bin').
+            Returns: bitarray: The contents of the binary file as a bitarray object.
+        """
         file_name = self.file_name + str(nr) + '.bin'
-        a = bitarray.bitarray()
+        bits = bitarray.bitarray()
         with open(file_name, 'rb') as fh:
-            a.fromfile(fh)
-        return a
+            bits.fromfile(fh)
+        return bits
 
     @staticmethod
     def compress_file(input_path: str,

@@ -4,9 +4,10 @@ import time
 from datetime import datetime
 from primes.file_manager import SieveFileManager
 from primes.coordinator import PrimeCoordinator
-from utils import generate_timestamp_filename
+from utils import generate_timestamp_filename, header
 
 
+header = header()
 process = psutil.Process(os.getpid())
 
 def get_mem_usage_mb():
@@ -71,6 +72,7 @@ if __name__ == '__main__':
     #filename = f"results/benchmark_load_data_vs_generator_{now}.txt"
     filename = generate_timestamp_filename("benchmark_load_data_vs_generator")
     with open(filename, "w") as f:
+        f.write(header)
         f.write(benchmark_result)
 
     print(f"Benchmark results saved to: {filename}")

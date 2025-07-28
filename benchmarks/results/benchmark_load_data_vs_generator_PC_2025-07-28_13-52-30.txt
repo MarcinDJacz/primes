@@ -1,0 +1,16 @@
+CPU: AMD Ryzen 5 5500, OS: Windows 10
+[List load]
+   Time: 4.103 s
+   Memory used: 424.02 MB
+
+[Generator traversal]
+   Time: 3.790 s
+   Memory used: 11.96 MB
+
+[Comparison]
+   Generator is 7.64% faster
+   Generator uses 97.18% less memory
+
+Raw differences:
+   Time saved: 0.313 s
+   Memory saved: 412.06 MB

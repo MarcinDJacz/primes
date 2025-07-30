@@ -12,7 +12,7 @@ class SieveFileManager:
         self.file_name = 'bits_file'
 
     def save(self, file_number: int, data, prefix: str = "") -> None:
-        file_name = f"{prefix}{self.file_name}{str(file_number)}.bin'"
+        file_name = f"{prefix}{self.file_name}{str(file_number)}.bin"
         with open(file_name, 'wb') as fh:
             data.tofile(fh)
 

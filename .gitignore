@@ -1,5 +1,5 @@
 *.bin
-!bits_file1.bin
+!primes/bits_file1.bin
 *.bin.gz
 .env
 archive

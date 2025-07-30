@@ -1,0 +1,13 @@
+bitarray==3.5.2
+colorama==0.4.6
+execnet==2.1.1
+iniconfig==2.1.0
+packaging==25.0
+pluggy==1.6.0
+psutil==7.0.0
+Pygments==2.19.2
+pytest==8.4.1
+pytest-xdist==3.8.0
+python-dotenv==1.1.1
+pywin32==311
+WMI==1.5.1

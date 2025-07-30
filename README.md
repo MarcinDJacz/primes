@@ -7,7 +7,7 @@ using bit arrays, designed to benchmark various algorithms and hardware performa
 
 ## Table of Contents
 
-- [Description](#description)  
+- [Descrip,tion](#description)  
 - [Requirements](#requirements)  
 - [Installation](#installation)  
 - [Usage](#usage)  

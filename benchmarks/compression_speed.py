@@ -1,11 +1,10 @@
 import time
 import os
-from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
 
-from primes.benchmarks.utils import generate_timestamp_filename
-from primes.file_manager import SieveFileManager
-from primes.coordinator import PrimeCoordinator
+from project_root import generate_timestamp_filename
+from project_root.primes.file_manager import SieveFileManager
+from project_root.primes.coordinator import PrimeCoordinator
 
 
 def compress_wrapper(file: str):

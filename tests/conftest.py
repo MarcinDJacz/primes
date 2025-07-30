@@ -1,4 +1,4 @@
-from primes.coordinator import PrimeCoordinator
+from project_root.primes.coordinator import PrimeCoordinator
 import pytest
 import os
 

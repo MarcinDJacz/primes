@@ -2,8 +2,7 @@ import psutil
 import os
 import time
 from datetime import datetime
-from primes.file_manager import SieveFileManager
-from primes.coordinator import PrimeCoordinator
+from project_root.primes.coordinator import PrimeCoordinator
 from utils import generate_timestamp_filename, header
 
 

@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  manager:
+    build: ./manager
+    depends_on:
+      - redis
+
+  worker1:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker2:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker3:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker4:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker5:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker6:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker7:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker8:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker9:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+
+  worker10:
+    build: ./primes
+    depends_on:
+      - redis
+    volumes:
+      - .:/app/project_root
+

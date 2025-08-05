@@ -125,18 +125,13 @@ class PrimeCoordinator:
 
 
 if __name__ == "__main__":
-    '''
-    import time
+
     Sieve = PrimeCoordinator()
-    t1 = time.time()
-    count = 0
-    for x in range(2,12):
-        Sieve.create_files((x-2)*10+2, (x-1)*10+2)
-        count += 10
-    t2 = time.time()
-    print(f"{count} files created in: {t2-t1}")
-    # 100 files created in: 19.251186847686768
-    '''
+
+    print(Sieve.calculator.is_prime_optimized(399999981))
+    #Sieve.create_one_file(2)
+    #Sieve.create_one_file(3)
+    z = input("asd")
 
     """
     bechmarks and results       -> benchmakrs directory

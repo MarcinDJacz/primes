@@ -33,21 +33,19 @@ class SieveCalculation:
          if it is a prime number
         :return: True if number is a prime number
         """
+        if number == 2 or number == 3:
+            return True
+        if number < 2 or number % 2 == 0:
+            return False
+
         if self.primes[-1] ** 2 > number:
-            if number == 2 or number == 3:
-                return True
-            elif number % 2 == 0:
-                return False
-            else:
-                square = int(number ** (1 / 2))
-                x = 1
-                actual_number = self.primes[x]
-                while actual_number < square:
-                    if number % self.primes[x] == 0:
-                        return False
-                    x += 1
-                    actual_number = self.primes[x]
-                return True
+            square = int(number ** 0.5)
+            for prime in self.primes:
+                if prime > square:
+                    break
+                if number % prime == 0:
+                    return False
+            return True
         else:
             print('More primes in data needed.')
 
@@ -120,7 +118,11 @@ class SieveCalculation:
         """
         last_element = (file_number - 1) * (self.LEN)
         square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
+
         temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
+        if file_number == 1:
+            temp_tab[0] = 1
+
         primes_counter = 0
         find_tag_number = self.primes[primes_counter]
 
@@ -129,11 +131,10 @@ class SieveCalculation:
             # missing elements on beginning
             missing = (last_element - ((find_tag_number - 1) // 2)) % find_tag_number
             if missing == 0:
-                index = 0
-                temp_tab[0] = 1
+                index = find_tag_number
             else:
                 index = find_tag_number - missing
-            temp_tab[index] = 1  # ?
+
             temp_tab[index: self.LEN: find_tag_number] = 1  # all magic
             primes_counter += 1
             find_tag_number = self.primes[primes_counter]

@@ -3,7 +3,7 @@ import datetime
 from bitarray import bitarray
 from typing import Generator
 from .utils import more_legible, order_of_magnitude
-
+from sympy.ntheory.primetest import mr
 
 class SieveCalculation:
     def __init__(self, length_per_file: int, primes: list[int] = None):
@@ -26,7 +26,7 @@ class SieveCalculation:
                 return False
         return True
 
-    def is_prime_optimized(self, number):
+    def is_prime_optimized(self, number) -> bool:
         """
         better method for checking prime numbers
         :param number: the number being checked to see
@@ -48,6 +48,29 @@ class SieveCalculation:
             return True
         else:
             print('More primes in data needed.')
+
+    def is_prime_miller_rabin(self, number: int) -> bool:
+        """
+            Perform a Miller-Rabin primality test to check if a number is probably prime.
+
+            Parameters:
+                n (int): The number to test for primality.
+                witnesses (list[int], optional): List of bases (witnesses) to test against.
+                    If None, a default set of bases will be used to achieve high accuracy.
+
+            Returns:
+                bool: True if `n` is probably prime, False if `n` is definitely composite.
+
+            Notes:
+                - Miller-Rabin is a probabilistic primality test. It can falsely identify
+                  some composite numbers as prime (false positives), but the chance of error
+                  decreases exponentially with the number of chosen witnesses.
+                - Selecting a proper set of witnesses can make the test deterministic
+                  for numbers smaller than certain bounds.
+                - For cryptographic or production use, consider running additional
+                  deterministic tests or using libraries like `sympy` for 100% accuracy.
+        """
+        return mr(number, [2, 3, 5, 7, 11, 13, 17, 19, 23, 29])
 
     def max_range(self) -> tuple[int, int]:
         """
@@ -155,7 +178,9 @@ class SieveCalculation:
         square_range = math.floor(math.sqrt(file_number * 2 * self.LEN)) + 1
         temp_tab = (self.LEN + self.primes[-1]) * bitarray('0')  # min size of bitarrey = LEN , + last prime
 
-        #primes_counter = 0
+        if file_number == 1:
+            temp_tab[0] = 1
+
         find_tag_number = 0
         prime_generator = self.prime_generator_from_bits(data, 1)
         # FIND AND TAG
@@ -167,8 +192,7 @@ class SieveCalculation:
             # missing elements on beginning
             missing = (last_element - ((find_tag_number - 1) // 2)) % find_tag_number
             if missing == 0:
-                index = 0
-                temp_tab[0] = 1
+                index = find_tag_number
             else:
                 index = find_tag_number - missing
             temp_tab[index] = 1#?

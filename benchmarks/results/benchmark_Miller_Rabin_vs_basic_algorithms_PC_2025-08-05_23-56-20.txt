@@ -1,0 +1,6 @@
+Results for checking 1000 primes in file number: 100000.
+  Basic algorithm:                   86.506 s
+  Optimized algorithm:               13.869 s
+  Miller-Rabin algorithm:            0.059 s
+  results_2=results_1:               True 
+  results_2=results_3:               True 
